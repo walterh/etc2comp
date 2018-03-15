@@ -19,6 +19,7 @@
 #include "EtcFile.h"
 #include <stdio.h>
 #include <inttypes.h>
+#include <vector>
 
 namespace Etc
 {
@@ -76,7 +77,10 @@ namespace Etc
 
 		typedef struct
 		{
-			uint32_t	u32KeyAndValueByteSize;
+            uint32_t keyAndValueByteSize;
+            std::vector<uint8_t> key;
+            std::vector<uint8_t> value;
+            std::vector<uint8_t> padding;
 		} KeyValuePair;
 
 		typedef struct
@@ -130,14 +134,14 @@ namespace Etc
 		virtual void Write(FILE *a_pfile);
 		virtual ~FileHeader_Ktx(void) {}
 
-		void AddKeyAndValue(KeyValuePair *a_pkeyvaluepair);
+        void AddKeyAndValue(const void* key, size_t keySize, const void* value, size_t valueSize);
 
 		Data* GetData();
 
 	private:
 
 		Data m_data;
-		KeyValuePair *m_pkeyvaluepair;
+		std::vector<KeyValuePair> m_keyValuePairs;
 		
 		uint32_t m_u32Images;
 		uint32_t m_u32KeyValuePairs;

@@ -142,7 +142,7 @@ namespace Etc
 		m_data.m_u32NumberOfFaces			= 0;
 		m_data.m_u32BytesOfKeyValueData		= 0;
 
-		m_pkeyvaluepair = nullptr;
+		//m_pkeyvaluepair = nullptr;
 
 		m_u32Images = 0;
 		m_u32KeyValuePairs = 0;
@@ -167,11 +167,48 @@ namespace Etc
 		assert(szBytesWritten == sizeof(Data));
 
 		// Write KeyAndValuePairs
-		if (m_u32KeyValuePairs)
-		{
-			fwrite(m_pkeyvaluepair, m_pkeyvaluepair->u32KeyAndValueByteSize, 1, a_pfile);
-		}
+        for (const KeyValuePair& kvPair : m_keyValuePairs)
+        {
+            fwrite(&kvPair.keyAndValueByteSize, sizeof(uint32_t), 1, a_pfile);
+            
+            //printf("Key size: %zu\n", kvPair.key.size());
+            fwrite(kvPair.key.data(), 1, kvPair.key.size(), a_pfile);
+            
+            //printf("Val size: %zu\n", kvPair.value.size());
+            fwrite(kvPair.value.data(), 1, kvPair.value.size(), a_pfile);
+            
+            //printf("Padding size: %zu\n", kvPair.padding.size());
+            if (kvPair.padding.size() > 0)
+            {
+                fwrite(kvPair.padding.data(), 1, kvPair.padding.size(), a_pfile);
+            }
+        }
 	}
+
+    // ----------------------------------------------------------------------------------------------------
+    //
+    void FileHeader_Ktx::AddKeyAndValue(const void* key, size_t keySize, const void* value, size_t valueSize)
+    {
+        KeyValuePair kvPair;
+        
+        kvPair.keyAndValueByteSize = keySize + valueSize;
+        
+        //printf("keyAndValueByteSize: %u\n", kvPair.keyAndValueByteSize);
+        
+        kvPair.key.resize(keySize);
+        memcpy(kvPair.key.data(), key, keySize);
+        
+        kvPair.value.resize(valueSize);
+        memcpy(kvPair.value.data(), value, valueSize);
+        
+        kvPair.padding.resize(3 - ((kvPair.keyAndValueByteSize + 3) % 4));
+        
+        m_keyValuePairs.push_back(kvPair);
+        
+        //printf("padding: %zu\n", kvPair.padding.size());
+        
+        m_data.m_u32BytesOfKeyValueData += sizeof(kvPair.keyAndValueByteSize) + kvPair.keyAndValueByteSize + kvPair.padding.size();
+    }
 
 	// ----------------------------------------------------------------------------------------------------
 	//

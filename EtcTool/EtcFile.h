@@ -121,6 +121,8 @@ namespace Etc
 		}
 
 		void UseSingleBlock(int a_iPixelX = -1, int a_iPixelY = -1);
+        void AddKeyAndValue(const void* key, size_t keySize, const void* value, size_t valueSize);
+        
 	private:
 
 		char *m_pstrFilename;               // includes directory path and file extension
